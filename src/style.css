@@ -1,0 +1,8 @@
+h1 {
+    color: hotpink;
+    font-family: cursive;
+  }
+  .todo{
+    flex-direction: column;
+    padding: 1rem;
+  }
