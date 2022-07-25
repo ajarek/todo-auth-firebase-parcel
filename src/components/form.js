@@ -14,6 +14,7 @@ export class Form{
         title.classList.add("title");
         title.innerHTML = this.title;
         const form = document.createElement("form");
+        form.setAttribute("autocomplete" ,"off");
         form.id=this.id;
         form.classList.add("form");
         const emailInput = new Input("email","Email",("form-control" ,"my-4"));

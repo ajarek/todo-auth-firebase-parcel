@@ -2,7 +2,7 @@ import { signIn } from "./auth/signIn";
 import { signUp } from "./auth/signUp";
 import { Form } from "./components/form";
 import {render} from './todo/index'
-
+import jwt from 'jsonwebtoken'
 import { sendPasswordResetEmail } from "./auth/sendPasswordResetEmail";
 
 import { makeAuthorizedRequest } from "./auth/makeAuthorizedRequest";
@@ -28,7 +28,7 @@ const formLogin = (e) => {
       localStorage.setItem("token", res.idToken);
       localStorage.setItem("refreshToken", res.refreshToken);
       clearForm(e.target);
-      document.querySelector('.info').innerHTML="User is logged in"
+      document.querySelector('.info').innerHTML=`User ${res.email.split("@")[0].toUpperCase()} is logged in`
     }
   });
 };
@@ -137,8 +137,18 @@ const initializeApp = () => {
   eventResetPassword();
   
   eventAuthorizedRequest();
+ 
+
+  
   if (checkIfUserIsLoggedIn()) {
-    document.querySelector('.info').innerHTML="User is logged in"}
+    checkIfUserIsLoggedIn().then((res) => {
+      if (res.error) {
+        document.querySelector(".resultSignIn").innerHTML = res.error.message;
+      } else {
+        var decoded = jwt.decode(res.access_token)
+        document.querySelector('.info').innerHTML=`User ${decoded.email.split("@")[0].toUpperCase()} is logged in`}
+      })
+  }
     else {
       document.querySelector('.info').innerHTML="User is not logged in"
     }

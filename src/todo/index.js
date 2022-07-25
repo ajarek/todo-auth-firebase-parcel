@@ -2,27 +2,47 @@ import { Form } from "./Form"
 import {EasyHTTP} from './EasyHTTP-class'
 import { List } from "./List"
 import { Modal } from "./modalEdit"
+import jwt from 'jsonwebtoken'
 const root = document.querySelector("#root")
 const http=new EasyHTTP()
  
+function obtainLocalId(){
+const token=localStorage.getItem('token')
+if(token){
+var decoded = jwt.decode(token);
+return decoded.user_id
+}
+
+}
+
+
  function addTasks(task){
+    let todo=obtainLocalId()
     if(task){  
         const data={
             task: task,
             isCompleted: false
         }     
-     http.post('https://ajarek-my-database-default-rtdb.europe-west1.firebasedatabase.app/todo/.json',data)
+     http.post(`https://ajarek-my-database-default-rtdb.europe-west1.firebasedatabase.app/todo/${todo}/.json`,data)
      .then(()=>{render()})
     }    
 }
 
-function loadTasks(){    
-    http.get('https://ajarek-my-database-default-rtdb.europe-west1.firebasedatabase.app/todo/.json')
+function loadTasks(){  
+    let todo=obtainLocalId()  
+    http.get(`https://ajarek-my-database-default-rtdb.europe-west1.firebasedatabase.app/todo/${todo}/.json`)
     .then(data=>{
+        if(data){
         Object.entries(data).forEach(([key,value])=>{
         const list=new List(value.task,value.isCompleted,key)
-        root.append(list.render())     
+        root.append(list.render())  
+           
     })
+}
+    else{
+        const list=new List('No tasks yet',false,'')
+        root.append(list.render())
+    }
     isCompletedSetting()
     isCompletedSettingDB()
     deleteTaskEvent()
@@ -31,6 +51,7 @@ function loadTasks(){
 }
 
 function isCompletedSetting(){
+   
 const paragraphs=document.querySelectorAll('p')
 paragraphs.forEach(paragraph=>{
 
@@ -44,13 +65,14 @@ paragraphs.forEach(paragraph=>{
 }
 
 function isCompletedSettingDB(){
+    let todo=obtainLocalId()
 const paragraphs=document.querySelectorAll('p')
 paragraphs.forEach(paragraph=>{
 paragraph.addEventListener('click',()=>{
     const data={
         isCompleted: paragraph.dataset.isCompleted==='true'?false:true
     }
-    http.patch(`https://ajarek-my-database-default-rtdb.europe-west1.firebasedatabase.app/todo/${paragraph.id}.json`,data)
+    http.patch(`https://ajarek-my-database-default-rtdb.europe-west1.firebasedatabase.app/todo/${todo}/${paragraph.id}.json`,data)
     .then(()=>{
         render()
     })
@@ -60,8 +82,9 @@ paragraph.addEventListener('click',()=>{
 }
 
 function deleteTask(e){
+    let todo=obtainLocalId()
     const id=e.target.dataset.id
-    http.delete(`https://ajarek-my-database-default-rtdb.europe-west1.firebasedatabase.app/todo/${id}.json`)
+    http.delete(`https://ajarek-my-database-default-rtdb.europe-west1.firebasedatabase.app/todo/${todo}/${id}.json`)
     .then(()=>{
         render()
     })
@@ -89,7 +112,7 @@ function editTaskEvent(){
 }
 
 function saveChanges(e){
-    console.log(e);
+    let todo=obtainLocalId()
     const id=e.target.dataset.id
     const task=e.target.parentNode.children[1].value
     const isCompleted=e.target.previousElementSibling.value
@@ -97,7 +120,7 @@ function saveChanges(e){
         task: task,
         isCompleted: isCompleted
     }
-    http.patch(`https://ajarek-my-database-default-rtdb.europe-west1.firebasedatabase.app/todo/${id}.json`,data)
+    http.patch(`https://ajarek-my-database-default-rtdb.europe-west1.firebasedatabase.app/todo/${todo}/${id}.json`,data)
     .then(()=>{
         render()
     }
